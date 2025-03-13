@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CITIBANK Job Monitoring</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .login-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .login-container img {
+            width: 150px;
+            margin-bottom: 1rem;
+        }
+
+        .login-container h1 {
+            margin-bottom: 1rem;
+            color: #003366;
+        }
+
+        .login-container label {
+            display: block;
+            margin: 0.5rem 0 0.2rem;
+            text-align: left;
+        }
+
+        .login-container input {
+            width: 100%;
+            padding: 0.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .login-container button {
+            width: 100%;
+            padding: 0.5rem;
+            background-color: #003366;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .login-container button:hover {
+            background-color: #002244;
+        }
+
+        .error-message {
+            color: red;
+            margin-top: 1rem;
+        }
+
+        .dashboard {
+            display: none;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            background-color: #003366;
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .header img {
+            width: 150px;
+        }
+
+        .header-info {
+            flex-grow: 1;
+            margin-left: 2rem;
+        }
+
+        .user-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .timer {
+            font-size: 1rem;
+            font-weight: normal;
+        }
+
+        .header button {
+            padding: 0.5rem 1rem;
+            background-color: #fff;
+            color: #003366;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .status-filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .status-filters button {
+            padding: 0.5rem 1rem;
+            background-color: #003366;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .status-filters button.active {
+            background-color: #002244;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #003366;
+            color: white;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+
+        .processing { background-color: #fff3cd; color: #856404; }
+        .failed { background-color: #f8d7da; color: #721c24; }
+        .success { background-color: #d4edda; color: #155724; }
+
+        .popup {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .popup-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .popup-content button {
+            margin: 0.5rem;
+            padding: 0.5rem 1rem;
+            background-color: #003366;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Page -->
+    <div class="login-container" id="loginPage">
+        <img src="citibank.jpg" alt="Citi Logo">
+        <h1>CITIBANK Job Monitoring</h1>
+        <form id="loginForm">
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+            
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+            
+            <button type="submit">Login</button>
+        </form>
+        <p id="errorMessage" class="error-message"></p>
+    </div>
+
+    <!-- Dashboard -->
+    <div class="dashboard" id="dashboard">
+        <div class="header">
+            <img src="citibank.jpg" alt="Citi Logo">
+            <div class="header-info">
+                <div class="user-name" id="userName"></div>
+                <div class="timer" id="timer">Session Time: 00:00:00</div>
+            </div>
+            <button onclick="logout()">Logout</button>
+        </div>
+
+        <!-- Status Filters -->
+        <div class="status-filters">
+            <button onclick="filterJobs('all')">All</button>
+            <button onclick="filterJobs('success')">Success</button>
+            <button onclick="filterJobs('failed')">Failed</button>
+            <button onclick="filterJobs('processing')">Processing</button>
+        </div>
+
+        <!-- Jobs Table -->
+        <table>
+            <thead>
+                <tr>
+                    <th>Job ID</th>
+                    <th>Job Name</th>
+                    <th>Status</th>
+                    <th>Run Date & Time</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+            <tbody id="jobTableBody">
+                <!-- Populated by JavaScript -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Details Popup -->
+    <div id="detailsPopup" class="popup">
+        <div class="popup-content">
+            <h3>Job Details</h3>
+            <p id="popupMessage"></p>
+            <button onclick="restartJob()">Restart</button>
+            <button onclick="closePopup()">Close</button>
+        </div>
+    </div>
+
+    <script>
+        // Predefined users
+        const users = [
+            { email: 'vaishnavi.ingale@citibank.com', password: 'Vaishnavi#@!123' },
+            { email: 'ganorkar.piyush@citibank.com', password: 'Piyush#@!123' },
+            { email: 'Ghosh.Tina@citibank.com', password: 'Tina#@!123' },
+        ];
+
+        // Dummy jobs
+        let jobs = [
+            { id: 'JOB001', name: 'Transaction data import', status: 'processing', runTime: new Date() },
+            { id: 'JOB002', name: 'Transaction data export', status: 'processing', runTime: new Date() },
+            { id: 'JOB003', name: 'Load customer details to AWS', status: 'processing', runTime: new Date() },
+            { id: 'JOB004', name: 'Export customer details', status: 'processing', runTime: new Date() },
+            { id: 'JOB005', name: 'Amex transaction/import export', status: 'processing', runTime: new Date() },
+            { id: 'JOB006', name: 'UPI transaction data import/export', status: 'processing', runTime: new Date() },
+        ];
+
+        // Timer variables
+        let timerInterval;
+        let accumulatedTime = 0;
+        let sessionStartTime;
+
+        // Job status management
+        function getCurrentCycleStart() {
+            const now = new Date();
+            return new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), 0, 0);
+        }
+
+        function updateJobs() {
+            const cycleStart = getCurrentCycleStart();
+            const elapsed = Date.now() - cycleStart.getTime();
+            
+            jobs.forEach(job => {
+                job.runTime = new Date(cycleStart);
+                if (elapsed < 900000) { // 15 minutes
+                    job.status = 'processing';
+                } else {
+                    // Only set random status if not manually set to success
+                    if (job.status !== 'success') {
+                        job.status = Math.random() < 0.5 ? 'failed' : 'success';
+                    }
+                }
+            });
+            renderJobs();
+        }
+
+        // Login logic
+        document.getElementById('loginForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            const user = users.find(u => u.email === email && u.password === password);
+            if (user) {
+                // Show username
+                const username = email.split('@')[0];
+                document.getElementById('userName').textContent = `Welcome, ${username.replace('.', ' ')}`;
+                
+                // Handle session timing
+                const now = Date.now();
+                const lastLogout = localStorage.getItem('lastLogoutTime');
+                const todayMidnight = new Date().setHours(24,0,0,0);
+
+                // Reset if it's a new day
+                if (!localStorage.getItem('lastLoginDate') || new Date().toDateString() !== new Date(parseInt(localStorage.getItem('lastLoginDate'))).toDateString()) {
+                    localStorage.setItem('accumulatedTime', '0');
+                }
+
+                // Calculate accumulated time
+                accumulatedTime = parseInt(localStorage.getItem('accumulatedTime')) || 0;
+                if (lastLogout && now - lastLogout < 86400000) { // 24 hours
+                    accumulatedTime += (now - lastLogout);
+                }
+
+                // Start timer
+                sessionStartTime = Date.now() - accumulatedTime;
+                localStorage.setItem('lastLoginDate', Date.now());
+                startTimer();
+                
+                // Initialize jobs
+                updateJobs();
+                setInterval(updateJobs, 1800000); // Update every minute
+
+                // Show dashboard
+                document.getElementById('loginPage').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'block';
+            } else {
+                document.getElementById('errorMessage').textContent = 'Invalid email or password';
+            }
+        });
+
+        // Timer functions
+        function startTimer() {
+            clearInterval(timerInterval);
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        function updateTimer() {
+            const currentTime = Date.now();
+            const totalTime = currentTime - sessionStartTime;
+            const hours = Math.floor(totalTime / 3600000);
+            const minutes = Math.floor((totalTime % 3600000) / 60000);
+            const seconds = Math.floor((totalTime % 60000) / 1000);
+            
+            document.getElementById('timer').textContent = 
+                `Session Time: ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        // Logout logic
+        function logout() {
+            // Save logout time and accumulated time
+            localStorage.setItem('lastLogoutTime', Date.now());
+            localStorage.setItem('accumulatedTime', Date.now() - sessionStartTime);
+            
+            clearInterval(timerInterval);
+            document.getElementById('loginPage').style.display = 'block';
+            document.getElementById('dashboard').style.display = 'none';
+        }
+
+        // Midnight reset
+        function setMidnightReset() {
+            const now = new Date();
+            const night = new Date(
+                now.getFullYear(),
+                now.getMonth(),
+                now.getDate() + 1,
+                0, 0, 0
+            );
+            const msToMidnight = night - now;
+
+            setTimeout(() => {
+                localStorage.removeItem('accumulatedTime');
+                localStorage.removeItem('lastLogoutTime');
+                setMidnightReset();
+            }, msToMidnight);
+        }
+
+        // Initialize midnight reset
+        setMidnightReset();
+
+        // Render jobs table
+        function renderJobs(filter = 'all') {
+            const tbody = document.getElementById('jobTableBody');
+            tbody.innerHTML = '';
+
+            const filteredJobs = filter === 'all' ? jobs : jobs.filter(job => job.status === filter);
+
+            filteredJobs.forEach(job => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${job.id}</td>
+                    <td>${job.name}</td>
+                    <td><span class="status ${job.status}">${job.status.toUpperCase()}</span></td>
+                    <td>${job.runTime.toLocaleString()}</td>
+                    <td>${job.status === 'failed' ? `<button onclick="showDetails('${job.id}')">Details</button>` : ''}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Filter jobs by status
+        function filterJobs(status) {
+            renderJobs(status);
+        }
+
+        // Show details popup
+        function showDetails(jobId) {
+            const job = jobs.find(j => j.id === jobId);
+            document.getElementById('popupMessage').textContent = 'File transfer/import was unsuccessful.';
+            document.getElementById('popupMessage').dataset.jobId = jobId;
+            document.getElementById('detailsPopup').style.display = 'flex';
+        }
+
+        // Close details popup
+        function closePopup() {
+            document.getElementById('detailsPopup').style.display = 'none';
+        }
+
+        // Restart job
+        function restartJob() {
+            const jobId = document.getElementById('popupMessage').dataset.jobId;
+            const job = jobs.find(j => j.id === jobId);
+            job.status = 'success';
+            closePopup();
+            renderJobs();
+        }
+    </script>
+</body>
+</html>
